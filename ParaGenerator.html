@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Paragraph Generator</title>
+    <link rel="stylesheet" href="ParaGenerator.css">
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>Random Paragraph Generator</h1>
+            <label for="items">Number of Paragraphs (Max 100)</label>
+        </div>
+
+        <div class="input-container">
+            <input type="number" value="5" id="items" min="1" max="100">
+            <button onclick="generate()">Generate</button>
+        </div>
+
+        <div class="actions">
+            <button id="read-aloud-btn" onclick="readAloud()">🔊 Read Aloud</button>
+            <button id="pause-resume-btn" onclick="toggleSpeech()" disabled>⏸️ Pause</button>
+        </div>
+
+        <div id="data" class="paragraphs-container"></div>
+    </div>
+
+    <script src="ParaGenerator.js"></script>
+</body>
+</html>
