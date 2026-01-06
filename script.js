@@ -1,4 +1,4 @@
-const paragraphs = [
+const sentencePool = [
     'JavaScript is a powerful programming language used for web development.',
     'It allows developers to create interactive and dynamic web applications.',
     'JavaScript can manipulate HTML and CSS to update content in real time.',
@@ -51,77 +51,164 @@ const paragraphs = [
     'Frameworks like Three.js allow JavaScript to create immersive 3D web experiences.'
 ];
 
-let speechSynthesisInstance = window.speechSynthesis;
-let currentSpeech = null;
+let synthesis = window.speechSynthesis;
+let currentUtterance = null;
 let isPaused = false;
+let voices = [];
 
+// Initialize Voices
+function populateVoices() {
+    voices = synthesis.getVoices();
+    const voiceSelect = document.getElementById("voice-select");
+    voiceSelect.innerHTML = '';
+
+    voices.forEach((voice, i) => {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        voiceSelect.appendChild(option);
+    });
+}
+
+if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = populateVoices;
+}
+
+// Logic: Shuffle array
 function shuffle(array) {
-    let currentIndex = array.length;
-    let randomIndex;
-
-    while (currentIndex !== 0) {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex != 0) {
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex--;
-
         [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
     }
-
     return array;
 }
 
-function generate() {
-    const item = document.getElementById("items");
-    const dataContainer = document.getElementById("data");
-
-    let paragraphCount = parseInt(item.value);
-
-    if (paragraphCount < 1 || paragraphCount > 100) {
-        alert("Please enter a number between 1 and 100.");
-        return;
-    }
-
-    const shuffleParagraphs = [...paragraphs, ...paragraphs];  // Increase available text
-    shuffle(shuffleParagraphs);
-
-    const selectedParagraphs = shuffleParagraphs.slice(0, paragraphCount);
-    const paragraphsHTML = selectedParagraphs.map(paragraph => `<p>${paragraph}</p>`).join("");
-    dataContainer.innerHTML = paragraphsHTML;
-
-    // Reset speech options
-    document.getElementById("pause-resume-btn").disabled = true;
-    document.getElementById("pause-resume-btn").innerHTML = "⏸️ Pause";
+// Input Button Controls
+function adjustValue(amount) {
+    const input = document.getElementById("items");
+    let val = parseInt(input.value) + amount;
+    if (val >= 1 && val <= 50) input.value = val;
 }
 
-function readAloud() {
-    const paragraphsHTML = document.getElementById("data").innerText;
+function updateSpeedLabel() {
+    document.getElementById("speed-val").innerText = document.getElementById("rate").value + "x";
+}
 
-    if (!paragraphsHTML.trim()) {
-        alert("Generate paragraphs first!");
+// Generate Paragraphs
+function generate() {
+    const count = parseInt(document.getElementById("items").value);
+    const container = document.getElementById("data");
+    
+    // Create random sentence combinations
+    let shuffledSentences = shuffle([...sentencePool]);
+    let htmlContent = "";
+
+    // If request is large, duplicate pool
+    while (shuffledSentences.length < count * 3) {
+        shuffledSentences = [...shuffledSentences, ...sentencePool];
+    }
+
+    for (let i = 0; i < count; i++) {
+        // Construct a paragraph from 3 to 5 random sentences
+        let sentenceCount = Math.floor(Math.random() * 3) + 3; 
+        let paraText = shuffledSentences.splice(0, sentenceCount).join(" ");
+        
+        htmlContent += `
+            <div class="generated-p">
+                ${paraText}
+                <button class="copy-item-btn" onclick="copyText(this)" title="Copy Paragraph">
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+            </div>`;
+    }
+
+    container.innerHTML = htmlContent;
+    
+    // Enable Read button if it was disabled
+    stopSpeech();
+}
+
+// Text to Speech
+function readAloud() {
+    const text = document.getElementById("data").innerText;
+    if (!text.trim() || text.includes("Ready to generate")) {
+        showToast("Generate text first!");
         return;
     }
 
-    let speech = new SpeechSynthesisUtterance(paragraphsHTML);
-    speech.lang = "en-US";
-    speech.rate = 1;
-    
-    speechSynthesisInstance.speak(speech);
-    currentSpeech = speech;
-    isPaused = false;
+    stopSpeech(); // Clear previous
 
-    document.getElementById("pause-resume-btn").disabled = false;
-    document.getElementById("pause-resume-btn").innerHTML = "⏸️ Pause";
+    currentUtterance = new SpeechSynthesisUtterance(text);
+    
+    // Settings
+    const voiceIdx = document.getElementById("voice-select").value;
+    if(voices[voiceIdx]) currentUtterance.voice = voices[voiceIdx];
+    
+    currentUtterance.rate = document.getElementById("rate").value;
+
+    // Events
+    currentUtterance.onend = () => {
+        document.getElementById("pause-btn").disabled = true;
+        isPaused = false;
+    };
+
+    synthesis.speak(currentUtterance);
+    document.getElementById("pause-btn").disabled = false;
+    document.getElementById("pause-btn").innerHTML = '<i class="fa-solid fa-pause"></i>';
 }
 
 function toggleSpeech() {
-    if (!currentSpeech) return;
+    if (!synthesis.speaking) return;
 
     if (isPaused) {
-        speechSynthesisInstance.resume();
-        document.getElementById("pause-resume-btn").innerHTML = "⏸️ Pause";
+        synthesis.resume();
+        document.getElementById("pause-btn").innerHTML = '<i class="fa-solid fa-pause"></i>';
     } else {
-        speechSynthesisInstance.pause();
-        document.getElementById("pause-resume-btn").innerHTML = "▶️ Resume";
+        synthesis.pause();
+        document.getElementById("pause-btn").innerHTML = '<i class="fa-solid fa-play"></i>';
     }
-    
     isPaused = !isPaused;
 }
+
+function stopSpeech() {
+    synthesis.cancel();
+    isPaused = false;
+    document.getElementById("pause-btn").disabled = true;
+    document.getElementById("pause-btn").innerHTML = '<i class="fa-solid fa-pause"></i>';
+}
+
+// Utilities
+function copyText(btn) {
+    const text = btn.parentElement.innerText;
+    navigator.clipboard.writeText(text).then(() => showToast("Paragraph copied!"));
+}
+
+function copyAll() {
+    const text = document.getElementById("data").innerText;
+    if (!text.trim() || text.includes("Ready to generate")) return;
+    navigator.clipboard.writeText(text).then(() => showToast("All content copied!"));
+}
+
+function downloadText() {
+    const text = document.getElementById("data").innerText;
+    if (!text.trim() || text.includes("Ready to generate")) return;
+
+    const blob = new Blob([text], { type: "text/plain" });
+    const anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = "generated-paragraphs.txt";
+    anchor.click();
+    showToast("Download started!");
+}
+
+function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2000);
+}
+
+// Init
+populateVoices();
