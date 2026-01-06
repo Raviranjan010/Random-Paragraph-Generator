@@ -3,28 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Paragraph Generator</title>
+    <title>NextGen Text Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="card">
-        <div class="header">
-            <h1>Random Paragraph Generator</h1>
-            <label for="items">Number of Paragraphs (Max 100)</label>
-        </div>
 
-        <div class="input-container">
-            <input type="number" value="5" id="items" min="1" max="100">
-            <button onclick="generate()">Generate</button>
-        </div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-layer-group"></i>
+                <h2>TextGen</h2>
+            </div>
 
-        <div class="actions">
-            <button id="read-aloud-btn" onclick="readAloud()">🔊 Read Aloud</button>
-            <button id="pause-resume-btn" onclick="toggleSpeech()" disabled>⏸️ Pause</button>
-        </div>
+            <div class="control-group">
+                <label>Paragraphs</label>
+                <div class="input-wrapper">
+                    <button class="qty-btn" onclick="adjustValue(-1)">-</button>
+                    <input type="number" id="items" value="3" min="1" max="50" readonly>
+                    <button class="qty-btn" onclick="adjustValue(1)">+</button>
+                </div>
+            </div>
 
-        <div id="data" class="paragraphs-container"></div>
+            <div class="control-group">
+                <label>Voice Settings</label>
+                <select id="voice-select">
+                    <option value="" disabled selected>Loading voices...</option>
+                </select>
+                
+                <label class="sub-label">Speed: <span id="speed-val">1x</span></label>
+                <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1" oninput="updateSpeedLabel()">
+            </div>
+
+            <button class="btn-primary" onclick="generate()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
+            </button>
+            
+            <div class="divider"></div>
+
+            <button class="btn-secondary" onclick="downloadText()">
+                <i class="fa-solid fa-download"></i> Save as .txt
+            </button>
+            <button class="btn-secondary" onclick="copyAll()">
+                <i class="fa-solid fa-copy"></i> Copy All
+            </button>
+        </aside>
+
+        <main class="content-area">
+            <header class="top-bar">
+                <h3>Generated Output</h3>
+                <div class="audio-controls">
+                    <button id="read-btn" onclick="readAloud()" class="icon-btn" title="Read Aloud">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <button id="pause-btn" onclick="toggleSpeech()" class="icon-btn" disabled title="Pause/Resume">
+                        <i class="fa-solid fa-pause"></i>
+                    </button>
+                    <button onclick="stopSpeech()" class="icon-btn" title="Stop">
+                        <i class="fa-solid fa-stop"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div id="data" class="output-container">
+                <div class="placeholder">
+                    <i class="fa-regular fa-file-lines"></i>
+                    <p>Ready to generate content.</p>
+                </div>
+            </div>
+        </main>
     </div>
+
+    <div id="toast" class="toast">Copied to clipboard!</div>
 
     <script src="script.js"></script>
 </body>
