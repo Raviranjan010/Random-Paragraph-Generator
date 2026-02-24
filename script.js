@@ -355,9 +355,14 @@ document.addEventListener('keydown', e => {
         e.preventDefault();
         document.getElementById('find-modal').classList.remove('hidden');
         document.getElementById('find-input').focus();
+        return;
     }
     if (e.key === 'Escape') {
         closeModal();
+        return;
+    }
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
+        generate();
     }
 });
 
@@ -415,8 +420,4 @@ function showToast(msg) {
 }
 
 /* ─── KEYBOARD SHORTCUT: ENTER to generate ─── */
-document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
-        generate();
-    }
-});
+// (handled inside the combined keydown listener above)

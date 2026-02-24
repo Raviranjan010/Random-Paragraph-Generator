@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEXTLAB — Paragraph Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="noise-overlay"></div>
+
+<div class="app-shell">
+
+    <!-- TOP HEADER BAR -->
+    <header class="masthead">
+        <div class="masthead-left">
+            <span class="logo-mark">TL</span>
+            <span class="logo-text">TEXTLAB</span>
+        </div>
+        <div class="masthead-center">
+            <span class="ticker" id="ticker">JAVASCRIPT CONTENT GENERATOR — LOREM-ALTERNATIVE — v2.0</span>
+        </div>
+        <div class="masthead-right">
+            <span id="live-clock">00:00:00</span>
+        </div>
+    </header>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+        <!-- LEFT PANEL -->
+        <aside class="left-panel">
+
+            <div class="panel-section">
+                <div class="section-label">01 / QUANTITY</div>
+                <div class="big-counter">
+                    <button class="counter-btn" id="dec-btn" onclick="adjustValue(-1)">−</button>
+                    <div class="counter-display">
+                        <input type="number" id="items" value="3" min="1" max="50" readonly>
+                        <span class="counter-unit">para</span>
+                    </div>
+                    <button class="counter-btn" id="inc-btn" onclick="adjustValue(1)">+</button>
+                </div>
+                <div class="slider-track-wrap">
+                    <input type="range" id="para-slider" min="1" max="50" value="3" oninput="syncSlider()">
+                    <div class="slider-labels"><span>1</span><span>50</span></div>
+                </div>
+            </div>
+
+            <div class="panel-divider"></div>
+
+            <div class="panel-section">
+                <div class="section-label">02 / SENTENCE LENGTH</div>
+                <div class="toggle-group" id="length-toggle">
+                    <button class="toggle-btn active" data-val="short">SHORT</button>
+                    <button class="toggle-btn" data-val="medium">MED</button>
+                    <button class="toggle-btn" data-val="long">LONG</button>
+                </div>
+            </div>
+
+            <div class="panel-divider"></div>
+
+            <div class="panel-section">
+                <div class="section-label">03 / VOICE</div>
+                <select id="voice-select" class="custom-select">
+                    <option value="" disabled selected>Loading voices…</option>
+                </select>
+                <div class="speed-row">
+                    <span class="section-label" style="margin:0">SPEED</span>
+                    <span class="speed-badge" id="speed-val">1.0×</span>
+                </div>
+                <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1" oninput="updateSpeedLabel()">
+                <div class="audio-btns">
+                    <button class="audio-btn" onclick="readAloud()" title="Read aloud">
+                        <i class="fa-solid fa-play"></i> PLAY
+                    </button>
+                    <button class="audio-btn slim" id="pause-btn" onclick="toggleSpeech()" disabled title="Pause">
+                        <i class="fa-solid fa-pause"></i>
+                    </button>
+                    <button class="audio-btn slim" onclick="stopSpeech()" title="Stop">
+                        <i class="fa-solid fa-stop"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-divider"></div>
+
+            <div class="panel-section">
+                <div class="section-label">04 / THEME</div>
+                <div class="toggle-group" id="theme-toggle">
+                    <button class="toggle-btn active" data-val="light" onclick="setTheme('light')">LIGHT</button>
+                    <button class="toggle-btn" data-val="dark" onclick="setTheme('dark')">DARK</button>
+                    <button class="toggle-btn" data-val="ink" onclick="setTheme('ink')">INK</button>
+                </div>
+            </div>
+
+            <div class="panel-divider"></div>
+
+            <div class="panel-section">
+                <div class="section-label">05 / ACTIONS</div>
+                <button class="action-btn" onclick="generate()">
+                    <span class="action-icon">▶</span> GENERATE
+                </button>
+                <button class="action-btn outline" onclick="copyAll()">
+                    <span class="action-icon"><i class="fa-solid fa-copy"></i></span> COPY ALL
+                </button>
+                <button class="action-btn outline" onclick="downloadText()">
+                    <span class="action-icon"><i class="fa-solid fa-download"></i></span> DOWNLOAD .TXT
+                </button>
+                <button class="action-btn outline" onclick="downloadHTML()">
+                    <span class="action-icon"><i class="fa-solid fa-code"></i></span> EXPORT .HTML
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- RIGHT CONTENT -->
+        <main class="content-panel">
+
+            <div class="content-topbar">
+                <div class="topbar-left">
+                    <span class="content-label">OUTPUT</span>
+                    <span class="word-count" id="word-count">— words</span>
+                </div>
+                <div class="topbar-right">
+                    <button class="topbar-btn" onclick="increaseFont()" title="Larger text">A+</button>
+                    <button class="topbar-btn" onclick="decreaseFont()" title="Smaller text">A−</button>
+                    <button class="topbar-btn" onclick="toggleLineNumbers()" id="ln-btn" title="Toggle line numbers">#</button>
+                    <button class="topbar-btn" onclick="generate()" title="Regenerate">↻</button>
+                </div>
+            </div>
+
+            <div id="data" class="output-zone">
+                <div class="empty-state">
+                    <div class="empty-icon">¶</div>
+                    <p class="empty-msg">Configure settings and hit <strong>GENERATE</strong></p>
+                    <p class="empty-sub">JS-powered paragraph generator with speech synthesis</p>
+                </div>
+            </div>
+
+            <div class="content-footer">
+                <span id="para-count-label">0 paragraphs</span>
+                <span class="footer-sep">|</span>
+                <span id="char-count">0 characters</span>
+                <span class="footer-sep">|</span>
+                <span id="read-time">~0 min read</span>
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- FIND & REPLACE MODAL -->
+<div id="find-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>FIND &amp; HIGHLIGHT</span>
+            <button onclick="closeModal()" class="modal-close">✕</button>
+        </div>
+        <input type="text" id="find-input" placeholder="Search term…" class="modal-input">
+        <div class="modal-actions">
+            <button onclick="findInText()" class="action-btn">FIND</button>
+            <button onclick="clearHighlights()" class="action-btn outline">CLEAR</button>
+        </div>
+        <div id="find-results" class="find-results"></div>
+    </div>
+</div>
+
+<!-- KEYBOARD SHORTCUT: Ctrl+F -->
+<script src="script.js"></script>
+</body>
+</html>
